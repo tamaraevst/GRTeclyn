@@ -17,6 +17,7 @@
 #include "SmallDataIO.hpp" // for writing data
 #include "StateVariables.hpp"
 #include "FourthOrderLagrangeInterpolation.hpp"
+// #include "linear.hpp"
 
 // AMReX includes
 #include <AMReX_AmrParGDB.H>
@@ -260,7 +261,8 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
         amrex::MultiFab &state_level = amr_level.get_new_data(State_Type);
 
         // We should only need 1 ghost cell as we are doing linear interpolation
-        amrex::IntVect ghosts_to_fill = amrex::IntVect::TheUnitVector();
+        // amrex::IntVect ghosts_to_fill = amrex::IntVect::TheUnitVector();
+        amrex::IntVect ghosts_to_fill(2, 2, 2);
         state_level.FillBoundary(c_shift1, GR_SPACEDIM, ghosts_to_fill,
                                  geom.periodicity());
 
@@ -296,6 +298,10 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
                         interp.compute_weights(p, problem_domain_lo, dxi, is_nodal);
                         interp.interpolate(
                             &fab_array, shift, c_shift1, GR_SPACEDIM);
+
+                        // amrex::linear_interpolate_to_particle_v2(
+                        //     p, problem_domain_lo, dxi, &fab_array, shift,
+                        //     &is_nodal, c_shift1, GR_SPACEDIM, num_arrays);
 
                         // amrex::linear_interpolate_to_particle(
                         //     p, problem_domain_lo, dxi, &fab_array, shift,

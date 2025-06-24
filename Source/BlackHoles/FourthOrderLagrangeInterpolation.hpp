@@ -8,20 +8,18 @@
 #include "AMReX_LOUtil_K.H"
 #include <cmath>
 
-'''
-Class for 4th order interpolation of the mesh data onto the particle using Lagrange polynomials. 
-Currently, it allows to interpolate only one field at a time.
-The stencil is also hardcoded to be for cell-centered data.
-'''
+//Class for 4th order interpolation of the mesh data onto the particle using Lagrange polynomials. 
+//Currently, it allows to interpolate only one field at a time.
+//The stencil is also hardcoded to be for cell-centered data.
+//Assumes uniform grids 
 
 class FourthOrderLagrangeInterpolator
 {
 
 private:    
     static constexpr int N = 5; //number of stencil points
-    static constexpr int offset = 2; //offset for the stencil
-    static constexpr amrex::Real stencil[N] = {-2.0, -1.0, 0.0, 1.0, 2.0};
-    // static constexpr amrex::Real stencil[N] = {0., 1.};
+    inline static constexpr amrex::Real stencil[N] = {-2., -1., 0., 1., 2.};
+    // inline static constexpr amrex::Real stencil[N] = {0., 1.};
     int i0, j0, k0; // indices of the lower left corner of the stencil in the grid
 
 public:
@@ -43,26 +41,41 @@ public:
                      amrex::Real lz = (amrex::Real(p.pos(2)) - plo[2]) * dxi[2] - static_cast<amrex::Real>(!is_nodal[2]) * amrex::Real(0.5););
 
         // Compute the floor of the position
-        AMREX_D_TERM(int i0_floor = static_cast<int>(amrex::Math::floor(lx));,
-                     int j0_floor = static_cast<int>(amrex::Math::floor(ly));,
-                     int k0_floor = static_cast<int>(amrex::Math::floor(lz)););
+        AMREX_D_TERM(int i0 = static_cast<int>(amrex::Math::floor(lx));,
+                     int j0 = static_cast<int>(amrex::Math::floor(ly));,
+                     int k0 = static_cast<int>(amrex::Math::floor(lz)););
 
-        // Compute the lower left corner of the stencil
-        AMREX_D_TERM(i0 = i0_floor - offset;,
-                     j0 = j0_floor - offset;,
-                     k0 = k0_floor - offset;);
+        std::cout << "i0: " << i0 << ", j0: " << j0 << ", k0: " << k0 << std::endl;
         
         // Compute the position w.r.t. to the lower corner
-        AMREX_D_TERM(amrex::Real xint = lx - static_cast<amrex::Real>(i0_floor);,
-                     amrex::Real yint = ly - static_cast<amrex::Real>(j0_floor);,
-                     amrex::Real zint = lz - static_cast<amrex::Real>(k0_floor););
+        AMREX_D_TERM(amrex::Real xint = lx - static_cast<amrex::Real>(i0);,
+                     amrex::Real yint = ly - static_cast<amrex::Real>(j0);,
+                     amrex::Real zint = lz - static_cast<amrex::Real>(k0););
+
+        amrex::Real sx[] = {amrex::Real(1.0) - xint, xint};
+        amrex::Real sy[] = {amrex::Real(1.0) - yint, yint};
+        amrex::Real sz[] = {amrex::Real(1.0) - zint, zint};
+
+        std::cout << "lx: " << lx << ", ly: " << ly << ", lz: " << lz << std::endl;
+        std::cout << "xint: " << xint << ", yint: " << yint << ", zint: " << zint << std::endl;
 
         amrex::poly_interp_coeff(xint, stencil, N, wx);
+
+        std::cout << "sx: " << sx[0] << ", " << sx[1] << std::endl;
+        std::cout << "wx: " << wx[0] << ", " << wx[1] << std::endl;
+        std::cout << "Abs value of x : " << fabs(wx[0] - sx[0]) << " " << fabs(wx[1] - sx[1]) << std::endl;
+
 #if AMREX_SPACEDIM >= 2
         amrex::poly_interp_coeff(yint, stencil, N, wy);
+        std::cout << "sy: " << sy[0] << ", " << sy[1] << std::endl;
+        std::cout << "wy: " << wy[0] << ", " << wy[1] << std::endl;
+        std::cout << "Abs value of y : " << fabs(wy[0] - sy[0]) << " " << fabs(wy[1] - sy[1]) << std::endl;
 #endif
 #if AMREX_SPACEDIM == 3
         amrex::poly_interp_coeff(zint, stencil, N, wz);
+        std::cout << "sz: " << sz[0] << ", " << sz[1] << std::endl;
+        std::cout << "wz: " << wz[0] << ", " << wz[1] << std::endl;
+        std::cout << "Abs value of z : " << fabs(wz[0] - sz[0]) << " " << fabs(wz[1] - sz[1]) << std::endl;
 #endif
     }
 
@@ -74,6 +87,7 @@ public:
         int ncomp) const
     {
         int ctr = 0;
+        auto const& data = data_arr[0];
 
         for (int comp = start_comp; comp < start_comp + ncomp; ++comp) {
             val[ctr] = amrex::ParticleReal(0.0);
@@ -84,8 +98,7 @@ public:
                 for (int jj = 0; jj < N; ++jj) {
 #endif
                     for (int ii = 0; ii < N; ++ii) {
-                        val[ctr] += static_cast<amrex::ParticleReal>(
-                        ((data_arr[0]))(amrex::IntVect(AMREX_D_DECL(i0 + ii, j0 + jj, k0 + kk)), comp) * AMREX_D_TERM(wx[ii], * wy[jj], * wz[kk]));
+                        val[ctr] += data(amrex::IntVect(AMREX_D_DECL(i0 + ii, j0 + jj, k0 + kk)), comp) * AMREX_D_TERM(wx[ii], * wy[jj], * wz[kk]);
                         }
 #if AMREX_SPACEDIM >= 2
                     }
@@ -96,6 +109,7 @@ public:
                 ++ctr;
             } // end of for comp loop
     }
+
 };
 
 #endif /* FOURTHORDERLAGRANGEINTERPOLATION_HPP_ */
