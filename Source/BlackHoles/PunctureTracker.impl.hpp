@@ -16,7 +16,7 @@
 #include "GRAMRLevel.hpp"
 #include "SmallDataIO.hpp" // for writing data
 #include "StateVariables.hpp"
-#include "LagrangeInterpolation.hpp"
+#include "FourthOrderLagrangeInterpolation.hpp"
 
 // AMReX includes
 #include <AMReX_AmrParGDB.H>
@@ -292,9 +292,14 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
                             amrex::IntVect::TheZeroVector();
                         int num_arrays = 1;
 
-                        lagrange4_interpolate_to_particle(
-                            p, problem_domain_lo, dxi, &fab_array, shift,
-                            &is_nodal, c_shift1, GR_SPACEDIM, num_arrays);
+                        FourthOrderLagrangeInterpolator interp;
+                        interp.compute_weights(p, problem_domain_lo, dxi, is_nodal);
+                        interp.interpolate(
+                            &fab_array, shift, c_shift1, GR_SPACEDIM);
+
+                        // amrex::linear_interpolate_to_particle(
+                        //     p, problem_domain_lo, dxi, &fab_array, shift,
+                        //     &is_nodal, c_shift1, GR_SPACEDIM, num_arrays);
 
                         if (ipass == 0)
                         {
