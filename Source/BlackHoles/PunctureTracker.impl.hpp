@@ -261,7 +261,7 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
         amrex::MultiFab &state_level = amr_level.get_new_data(State_Type);
 
         // We should only need 1 ghost cell as we are doing linear interpolation
-        // amrex::IntVect ghosts_to_fill = amrex::IntVect::TheUnitVector();
+        //amrex::IntVect ghosts_to_fill = amrex::IntVect::TheUnitVector();
         amrex::IntVect ghosts_to_fill(2, 2, 2);
         state_level.FillBoundary(c_shift1, GR_SPACEDIM, ghosts_to_fill,
                                  geom.periodicity());
@@ -299,7 +299,10 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
                         interp.interpolate(
                             &fab_array, shift, c_shift1, GR_SPACEDIM);
 
-                        // amrex::linear_interpolate_to_particle_v2(
+                        //std::cout << "val[0] = " << shift[0] << std::endl;
+			//std::cout << "val[1] = " << shift[1] << std::endl;
+			//std::cout << "val[2] = " << shift[2] << std::endl;
+			// amrex::linear_interpolate_to_particle_v2(
                         //     p, problem_domain_lo, dxi, &fab_array, shift,
                         //     &is_nodal, c_shift1, GR_SPACEDIM, num_arrays);
 

@@ -1,5 +1,5 @@
-#ifndef FOURTHORDERLAGRANGEINTERPOLATION_HPP_
-#define FOURTHORDERLAGRANGEINTERPOLATION_HPP_
+#ifndef LINEARINTERPOLATION_HPP_
+#define LINEARINTERPOLATION_HPP_
 
 #include <AMReX_Gpu.H>
 #include <AMReX_IntVect.H>
@@ -8,24 +8,21 @@
 #include "AMReX_LOUtil_K.H"
 #include <cmath>
 
-//Class for 4th order interpolation of the mesh data onto the particle using Lagrange polynomials. 
-//Currently, it allows to interpolate only one field at a time.
-//The stencil is also hardcoded to be for cell-centered data.
-//Assumes uniform grids 
+//Linear interpolation for testing
 
-class FourthOrderLagrangeInterpolator
+class LinearInterpolator
 {
 
 private:    
-    static constexpr int N = 5; //number of stencil points
-    inline static constexpr amrex::Real stencil[N] = {-2., -1., 0., 1., 2.};
-    //inline static constexpr amrex::Real stencil[N] = {0., 1.};
+    static constexpr int N = 2; //number of stencil points
+    //inline static constexpr amrex::Real stencil[N] = {-2., -1., 0., 1., 2.};
+    inline static constexpr amrex::Real stencil[N] = {0., 1.};
     int i0, j0, k0; // indices of the lower left corner of the stencil in the grid
 
 public:
     amrex::Real wx[N], wy[N], wz[N]; //where we store the weights for each dimension
 
-    FourthOrderLagrangeInterpolator() {};
+    LinearInterpolator() {};
 
     template <typename P>
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -57,20 +54,30 @@ public:
                      amrex::Real yint = ly - static_cast<amrex::Real>(j0_floor);,
                      amrex::Real zint = lz - static_cast<amrex::Real>(k0_floor););
 
+        amrex::Real sx[] = {amrex::Real(1.0) - xint, xint};
+        amrex::Real sy[] = {amrex::Real(1.0) - yint, yint};
+        amrex::Real sz[] = {amrex::Real(1.0) - zint, zint};
+
         std::cout << "lx: " << lx << ", ly: " << ly << ", lz: " << lz << std::endl;
         std::cout << "xint: " << xint << ", yint: " << yint << ", zint: " << zint << std::endl;
 
         amrex::poly_interp_coeff(xint, stencil, N, wx);
 
+        std::cout << "sx: " << sx[0] << ", " << sx[1] << std::endl;
         std::cout << "wx: " << wx[0] << ", " << wx[1] << std::endl;
+        std::cout << "Abs value of x : " << fabs(wx[0] - sx[0]) << " " << fabs(wx[1] - sx[1]) << std::endl;
 
 #if AMREX_SPACEDIM >= 2
         amrex::poly_interp_coeff(yint, stencil, N, wy);
+        std::cout << "sy: " << sy[0] << ", " << sy[1] << std::endl;
         std::cout << "wy: " << wy[0] << ", " << wy[1] << std::endl;
+        std::cout << "Abs value of y : " << fabs(wy[0] - sy[0]) << " " << fabs(wy[1] - sy[1]) << std::endl;
 #endif
 #if AMREX_SPACEDIM == 3
         amrex::poly_interp_coeff(zint, stencil, N, wz);
+        std::cout << "sz: " << sz[0] << ", " << sz[1] << std::endl;
         std::cout << "wz: " << wz[0] << ", " << wz[1] << std::endl;
+        std::cout << "Abs value of z : " << fabs(wz[0] - sz[0]) << " " << fabs(wz[1] - sz[1]) << std::endl;
 #endif
     }
 
@@ -108,4 +115,4 @@ public:
 
 };
 
-#endif /* FOURTHORDERLAGRANGEINTERPOLATION_HPP_ */
+#endif /* LINEARINTERPOLATION_HPP_ */
