@@ -15,6 +15,7 @@
 #include "BSSNMatterTest.hpp"
 #include "CCZ4GeometryUnitTest.hpp"
 #include "CCZ4RHSTest.hpp"
+#include "LagrangeTest.hpp"
 #include "ConstraintsTest.hpp"
 #include "CoordinateTransformationsTest.hpp"
 #include "DerivativeUnitTests.hpp"
@@ -37,6 +38,9 @@ TEST_CASE("BSSNMatter"
 }
 
 TEST_CASE("CCZ4 Geometry") { run_ccz4_geometry_unit_tests(); }
+
+TEST_CASE("Lagrange") { run_lagrange_test(); }
+
 
 TEST_CASE("CCZ4RHS") { run_ccz4_rhs_test(); }
 

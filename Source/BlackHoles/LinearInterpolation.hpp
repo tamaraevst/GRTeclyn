@@ -63,20 +63,20 @@ public:
 
         amrex::poly_interp_coeff(xint, stencil, N, wx);
 
-        std::cout << "sx: " << sx[0] << ", " << sx[1] << std::endl;
-        std::cout << "wx: " << wx[0] << ", " << wx[1] << std::endl;
+        // std::cout << "sx: " << sx[0] << ", " << sx[1] << std::endl;
+        // std::cout << "wx: " << wx[0] << ", " << wx[1] << std::endl;
         std::cout << "Abs value of x : " << fabs(wx[0] - sx[0]) << " " << fabs(wx[1] - sx[1]) << std::endl;
 
 #if AMREX_SPACEDIM >= 2
         amrex::poly_interp_coeff(yint, stencil, N, wy);
-        std::cout << "sy: " << sy[0] << ", " << sy[1] << std::endl;
-        std::cout << "wy: " << wy[0] << ", " << wy[1] << std::endl;
+        // std::cout << "sy: " << sy[0] << ", " << sy[1] << std::endl;
+        // std::cout << "wy: " << wy[0] << ", " << wy[1] << std::endl;
         std::cout << "Abs value of y : " << fabs(wy[0] - sy[0]) << " " << fabs(wy[1] - sy[1]) << std::endl;
 #endif
 #if AMREX_SPACEDIM == 3
         amrex::poly_interp_coeff(zint, stencil, N, wz);
-        std::cout << "sz: " << sz[0] << ", " << sz[1] << std::endl;
-        std::cout << "wz: " << wz[0] << ", " << wz[1] << std::endl;
+        // std::cout << "sz: " << sz[0] << ", " << sz[1] << std::endl;
+        // std::cout << "wz: " << wz[0] << ", " << wz[1] << std::endl;
         std::cout << "Abs value of z : " << fabs(wz[0] - sz[0]) << " " << fabs(wz[1] - sz[1]) << std::endl;
 #endif
     }
@@ -111,6 +111,9 @@ public:
 	        std::cout << "val[" << ctr << "] = " << val[ctr] << std::endl;
                 ++ctr;
             } // end of for comp loop
+
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+0 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 0)), 0) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+1 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 1)), 0) << std::endl;
     }
 
 };
