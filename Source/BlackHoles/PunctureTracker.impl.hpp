@@ -293,8 +293,8 @@ void PunctureTracker<num_punctures>::track(double a_time, double a_dt,
                         amrex::IntVect is_nodal =
                             amrex::IntVect::TheZeroVector();
                         int num_arrays = 1;
-
-                        FourthOrderLagrangeInterpolator interp;
+                        
+                        FourthOrderLagrangeInterpolator<5> interp;
                         interp.compute_weights(p, problem_domain_lo, dxi, is_nodal);
                         interp.interpolate(
                             &fab_array, shift, c_shift1, GR_SPACEDIM);
