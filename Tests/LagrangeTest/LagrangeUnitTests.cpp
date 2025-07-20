@@ -83,7 +83,7 @@ void run_lagrange_test()
         // Random point where we will interpolate later on below, this is also the position where we put the particle on
         amrex::IntVect cell(20, 20, 20);
         double x_interp = (cell[0] + 0.1) * dx - center;
-        double y_interp = (cell[1] + 0.3) * dx - center;
+        double y_interp = (cell[1] + 0.5) * dx - center;
         double z_interp = (cell[2] + 0.7) * dx - center;
         
         //Get the expected value; will be used in the check later on 
@@ -135,7 +135,7 @@ void run_lagrange_test()
         amrex::GpuArray<amrex::Real, 3> dxi = {inv_dx, inv_dx, inv_dx};
         amrex::IntVect is_nodal{0, 0, 0};
 
-        FourthOrderLagrangeInterpolator interp;
+        FourthOrderLagrangeInterpolator<5> interp;
         // LinearInterpolator interp;
         interp.compute_weights(p, plo, dxi, is_nodal);
         amrex::ParticleReal result[1]; // One component
