@@ -66,15 +66,15 @@ public:
 
         build_stencil(lx, i0, wx);
 
-        std::cout << "wx: " << wx[0] << ", " << wx[1] << ", " << wx[2] << ", " << wx[3] << ", " << wx[4] << std::endl;
+        // std::cout << "wx: " << wx[0] << ", " << wx[1] << ", " << wx[2] << ", " << wx[3] << ", " << wx[4] << std::endl;
 
 #if AMREX_SPACEDIM >= 2
         build_stencil(ly, j0, wy);;
-        std::cout << "wy: " << wy[0] << ", " << wy[1] << ", " << wy[2] << ", " << wy[3] << ", " << wy[4] << std::endl;
+        // std::cout << "wy: " << wy[0] << ", " << wy[1] << ", " << wy[2] << ", " << wy[3] << ", " << wy[4] << std::endl;
 #endif
 #if AMREX_SPACEDIM == 3
         build_stencil(lz, k0, wz);
-        std::cout << "wz: " << wz[0] << ", " << wz[1] << ", " << wz[2] << ", " << wz[3] << ", " << wz[4] << std::endl;
+        // std::cout << "wz: " << wz[0] << ", " << wz[1] << ", " << wz[2] << ", " << wz[3] << ", " << wz[4] << std::endl;
 #endif
     }
 
@@ -108,11 +108,11 @@ public:
                 ++ctr;
             } // end of for comp loop
 
-    std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+0 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 0)), 21) << std::endl;
-    std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+1 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 1)), 21) << std::endl;
-    std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+2 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 2)), 21) << std::endl;
-    std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+3 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 3)), 21) << std::endl;
-    std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+4 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 4)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+0 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 0)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+1 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 1)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+2 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 2)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+3 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 3)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+4 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 4)), 21) << std::endl;
     }
 
 };
