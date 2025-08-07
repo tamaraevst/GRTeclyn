@@ -15,7 +15,7 @@
 #include "TraceARemoval.hpp"
 #include "TwoPuncturesInitialData.hpp"
 #include "Weyl4.hpp"
-#include "WeylExtraction.hpp"
+#include "SphericalParticles.hpp"
 
 BHAMR<BinaryBHLevel::num_punctures> *BinaryBHLevel::get_bhamr_ptr()
 {
@@ -26,6 +26,24 @@ PunctureTracker<BinaryBHLevel::num_punctures> &
 BinaryBHLevel::get_puncture_tracker()
 {
     return get_bhamr_ptr()->get_puncture_tracker();
+}
+
+SphericalParticles &BinaryBHLevel::get_chi_extractor()
+{
+    if (!m_chi_extractor)
+    {
+    m_chi_extractor = std::make_unique<SphericalParticles>(
+            simParams().spherical_particles_params, c_chi, 1,
+            get_gramr_ptr()->dtLevel(Level()),
+            get_state_data(State_Type).curTime(),
+            get_gramr_ptr()->get_restart_time());
+
+    m_chi_extractor->set_gramr_ptr(get_gramr_ptr());
+    m_chi_extractor->initialize_particles_on_sphere();
+    m_chi_extractor->interpolate();
+    }
+
+    return *m_chi_extractor;
 }
 
 void BinaryBHLevel::variableSetUp()
@@ -281,6 +299,8 @@ void BinaryBHLevel::specific_post_plotfile(const std::string &a_dir,
     {
         get_puncture_tracker().write_plotfile(a_dir);
     }
+
+    get_chi_extractor().write_plotfile(a_dir);
 }
 
 void BinaryBHLevel::specific_post_checkpoint(const std::string &a_chk_dir,
@@ -294,6 +314,21 @@ void BinaryBHLevel::specific_post_checkpoint(const std::string &a_chk_dir,
 
 void BinaryBHLevel::specificPostTimeStep()
 {
+    if (Level() == 0)
+{
+    BL_PROFILE("ChiExtracted");
+ 
+    amrex::Real cur_time = get_state_data(State_Type).curTime();
+    amrex::Real dt = get_gramr_ptr()->dtLevel(Level());
+    amrex::Real restart_time = get_gramr_ptr()->get_restart_time();
+ 
+    // SphericalParticles spherical_particles(simParams().spherical_particles_params, c_chi, 1, dt, cur_time, restart_time);
+    // spherical_particles.set_gramr_ptr(get_gramr_ptr());
+    // spherical_particles.initialize_particles_on_sphere();
+    // spherical_particles.interpolate();
+    get_chi_extractor().write_file(std::to_string(cur_time)); // pass current_step = 0 (or appropriate step number)
+}
+
     // do puncture tracking on requested level
     if (simParams().puncture_tracking_enabled &&
         Level() == simParams().puncture_tracking_level)

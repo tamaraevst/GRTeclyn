@@ -27,7 +27,8 @@ src_dirs := $(GRTECLYN_SOURCE)/utils \
             $(GRTECLYN_SOURCE)/AMRInterpolator  \
             $(GRTECLYN_SOURCE)/Tagging  \
             $(GRTECLYN_SOURCE)/InitialConditions/BlackHoles \
-            $(GRTECLYN_SOURCE)/BlackHoles
+            $(GRTECLYN_SOURCE)/ParticleInterpolators \
+            $(GRTECLYN_SOURCE)/BlackHoles \
 
 src_pack := $(foreach dir, $(src_dirs), $(dir)/Make.package)
 include $(src_pack)

@@ -9,6 +9,7 @@
 // General includes
 #include "GRParmParse.hpp"
 #include "SimulationParametersBase.hpp"
+#include "Parameters.hpp"
 
 // Problem specific includes:
 #include "ArrayTools.hpp"
@@ -43,6 +44,22 @@ class SimulationParameters : public SimulationParametersBase
                 puncture_tracking_writeout_level, 0);
         pp.load("calculate_constraint_norms", calculate_constraint_norms,
                 false);
+
+        pp.load("num_extraction_radii",
+                spherical_particles_params.num_extraction_radii, 1);
+        pp.load("num_u_points", spherical_particles_params.num_points_theta,
+                4);
+        pp.load("num_v_points", spherical_particles_params.num_points_phi, 4);
+        pp.load("extraction_radii",
+                spherical_particles_params.extraction_radii, 10.0);
+        // pp.load("extraction_levels",
+        //         spherical_particles_params.extraction_levels,
+        //         spherical_particles_params.num_extraction_radii);
+        pp.load("center",
+                spherical_particles_params.extraction_center,
+                center);
+        pp.load("write_extraction",
+                spherical_particles_params.write_extraction, true);
     }
 
 #ifdef USE_TWOPUNCTURES
@@ -324,6 +341,7 @@ class SimulationParameters : public SimulationParametersBase
     // e.g. for puncture tracking/tagging
     BoostedBH::params_t bh2_params{};
     BoostedBH::params_t bh1_params{};
+    Spherical_params_t spherical_particles_params{};
 
 #ifdef USE_TWOPUNCTURES
     double tp_offset_plus, tp_offset_minus;
