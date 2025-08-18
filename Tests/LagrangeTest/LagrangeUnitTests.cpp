@@ -21,7 +21,7 @@
 #include <AMReX_Print.H>
 
 // Our includes
-#include "FourthOrderLagrangeInterpolation.hpp"
+#include "LagrangeInterpolation.hpp"
 #include "PolynomialTest.hpp"
 // #include "LinearInterpolation.hpp"
 
@@ -135,7 +135,7 @@ void run_lagrange_test()
         amrex::GpuArray<amrex::Real, 3> dxi = {inv_dx, inv_dx, inv_dx};
         amrex::IntVect is_nodal{0, 0, 0};
 
-        FourthOrderLagrangeInterpolator<5> interp;
+        LagrangeInterpolator<5> interp;
         // LinearInterpolator interp;
         interp.compute_weights(p, plo, dxi, is_nodal);
         amrex::ParticleReal result[1]; // One component

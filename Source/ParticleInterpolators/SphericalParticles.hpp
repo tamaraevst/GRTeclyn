@@ -14,25 +14,28 @@
 #include "GRAMR.hpp"
 #include "GRAMRLevel.hpp"
 #include "SphericalGeometry.hpp"
-#include "FourthOrderLagrangeInterpolation.hpp"
+#include "LagrangeInterpolation.hpp"
 #include "StateVariables.hpp"
 #include "SmallDataIO.hpp"
 #include "Parameters.hpp"
+
+// Recall that the ParticleContainer is templeted over <NStructReal, NStructInt, NArrayReal, NArrayInt>, where 
+// NStructReal	The number of extra Real components in the particle struct
+// NStructInt	The number of extra integer components in the particle struct
+// NArrayReal	The number of extra Real components stored in struct-of-array form
+// NArrayInt	The number of extra integer components stored in struct-of-array form
 
 class SphericalParticles : public amrex::ParticleContainer</*NStructReal*/3,
                                                           /*NStructInt*/0,
                                                           /*NArrayReal*/0,
                                                           /*NArrayInt*/0>
-{
-public:
-
-    const amrex::Real m_dt{};
-    const amrex::Real m_time{};
-    const amrex::Real m_restart_time{};
- 
+{ 
 protected:
     GRAMR* m_gr_amr{nullptr};
     bool m_initialized{false}; // for a check whether GRAMR is set properly
+    const amrex::Real m_dt{};
+    const amrex::Real m_time{};
+    const amrex::Real m_restart_time{};
     Spherical_params_t m_params;
     SphericalGeometry m_sph_geom;
     int m_start_comp;
@@ -50,9 +53,6 @@ public:
         m_initialized = true;
         
         Define(dynamic_cast<amrex::ParGDBBase*>(m_gr_amr->GetParGDB()));
-
-        std::cout << "After Define: NumRealComps = " << NumRealComps() << ", NumIntComps = " <<  NumIntComps() << std::endl;
-
     }
  
     void initialize_particles_on_sphere()
@@ -60,18 +60,18 @@ public:
         AMREX_ASSERT(m_initialized);
         AMREX_ASSERT(m_gr_amr != nullptr);
 
-        // Define(dynamic_cast<amrex::ParGDBBase *>(m_gr_amr->GetParGDB()));
-
+        // Do stuff on rank 0 only
         if (amrex::ParallelDescriptor::MyProc() != 0) return;
  
-        const int lev = 0;
+        const int lev = 0; 
         int total_particles = m_params.num_points_theta * m_params.num_points_phi;
 
         // It does not matter on which grid/tile we place the particles initially as long as we call Redistribute() after.
         auto& particle_tile = DefineAndReturnParticleTile(lev, 0, 0);
         particle_tile.resize(total_particles);
         const auto& particle_data = particle_tile.getParticleTileData();
- 
+
+        // Loop over particles and place them at required (u, v) points
         amrex::ParallelFor(total_particles, [=] AMREX_GPU_DEVICE(int ip)
         {
             int i_theta = ip / m_params.num_points_phi;
@@ -88,21 +88,21 @@ public:
 #if AMREX_SPACEDIM == 3
             p.pos(2) = m_sph_geom.get_grid_coord(2, m_params.extraction_radii, theta, phi);
 #endif
-            p.rdata(0) = 0.0;
+            p.rdata(0) = 0.0; // this is for \chi (will be filled in later)
             p.rdata(1) = theta;
             p.rdata(2) = phi;
         });
 
-        std::cout << "Total number of particles after init " << TotalNumberOfParticles() << std::endl;
+        // std::cout << "Total number of particles after init " << TotalNumberOfParticles() << std::endl;
  
         amrex::Gpu::streamSynchronize();
         Redistribute();
 
-        std::cout << "Total number of particles after init " << TotalNumberOfParticles() << std::endl;
+        // std::cout << "Total number of particles after init " << TotalNumberOfParticles() << std::endl;
 
     }
- 
-    // Intrepolation function 
+
+    // Interpolation function (for now the interpolation is hardcoded to chi)
     void interpolate()
     {
         AMREX_ASSERT(m_initialized);
@@ -117,12 +117,13 @@ public:
             const amrex::Geometry &geom = amr_level.Geom();
             amrex::MultiFab &state_level = amr_level.get_new_data(State_Type);
  
-            amrex::IntVect ghosts_to_fill(2, 2, 2);
+            amrex::IntVect ghosts_to_fill(2, 2, 2); // this should be changed based on the var we are interpolating above
             state_level.FillBoundary(c_chi, GR_SPACEDIM, ghosts_to_fill, geom.periodicity());
  
             const auto problem_domain_lo = geom.ProbLoArray();
             const auto dxi = geom.InvCellSizeArray();
- 
+            
+            // Loop over tiles and interpolate now
             for (ParIterType iter(*this, ilevel); iter.isValid(); ++iter)
             {
                 ParticleTileType& punc_tile = ParticlesAt(ilevel, iter);
@@ -138,7 +139,7 @@ public:
                         auto& p = punc_particles_data[ipunc];
                         amrex::ParticleReal chi;
                         amrex::IntVect is_nodal = amrex::IntVect::TheZeroVector();
-                        FourthOrderLagrangeInterpolator<5> interp;
+                        LagrangeInterpolator<5> interp;
                         interp.compute_weights(p, problem_domain_lo, dxi, is_nodal);
                         interp.interpolate(&fab_array, &chi, m_start_comp, m_ncomp);
                         p.rdata(0) = chi;
@@ -146,7 +147,8 @@ public:
             }
         }
     }
- 
+    
+    // Write out the extracted data at (u, v) points in the file
     void write_file(std::string a_file_prefix) 
     {
         AMREX_ASSERT(m_initialized);
@@ -209,17 +211,17 @@ public:
 
     void write_plotfile(const std::string &a_dir)
     {
-    // chi, theta, phi
-    amrex::Vector<std::string> real_names = {"chi", "theta", "phi"};
-    // none
-    amrex::Vector<std::string> int_names{}; 
+        // chi, theta, phi
+        amrex::Vector<std::string> real_names = {"chi", "theta", "phi"};
+        // none
+        amrex::Vector<std::string> int_names{}; 
 
-    // plotfile particle type name
-    std::string ptype = "particles";
-    
-    // Redistribute(); // do I need redistribute here?
+        // plotfile particle type name
+        std::string ptype = "particles";
+        
+        // Redistribute(); // do I need redistribute here?
 
-    this->WritePlotFile(a_dir, ptype, real_names, int_names);
+        this->WritePlotFile(a_dir, ptype, real_names, int_names);
     }
 };
 

@@ -6,7 +6,7 @@
 #include "BinaryBHLevel.hpp"
 #include "BinaryBH.hpp"
 #include "CCZ4RHS.hpp"
-#include "ChiExtractionTagger.hpp"
+#include "ChiTagger.hpp"
 #include "Constraints.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTagger.hpp"
@@ -15,7 +15,8 @@
 #include "TraceARemoval.hpp"
 #include "TwoPuncturesInitialData.hpp"
 #include "Weyl4.hpp"
-#include "SphericalParticles.hpp"
+// #include "SphericalParticles.hpp"
+#include "CustomExtraction.hpp"
 
 BHAMR<BinaryBHLevel::num_punctures> *BinaryBHLevel::get_bhamr_ptr()
 {
@@ -28,23 +29,23 @@ BinaryBHLevel::get_puncture_tracker()
     return get_bhamr_ptr()->get_puncture_tracker();
 }
 
-SphericalParticles &BinaryBHLevel::get_chi_extractor()
-{
-    if (!m_chi_extractor)
-    {
-    m_chi_extractor = std::make_unique<SphericalParticles>(
-            simParams().spherical_particles_params, c_chi, 1,
-            get_gramr_ptr()->dtLevel(Level()),
-            get_state_data(State_Type).curTime(),
-            get_gramr_ptr()->get_restart_time());
+// SphericalParticles &BinaryBHLevel::get_chi_extractor()
+// {
+//     if (!m_chi_extractor)
+//     {
+//     m_chi_extractor = std::make_unique<SphericalParticles>(
+//             simParams().spherical_particles_params, c_chi, 1,
+//             get_gramr_ptr()->dtLevel(Level()),
+//             get_state_data(State_Type).curTime(),
+//             get_gramr_ptr()->get_restart_time());
 
-    m_chi_extractor->set_gramr_ptr(get_gramr_ptr());
-    m_chi_extractor->initialize_particles_on_sphere();
-    m_chi_extractor->interpolate();
-    }
+//     m_chi_extractor->set_gramr_ptr(get_gramr_ptr());
+//     m_chi_extractor->initialize_particles_on_sphere();
+//     m_chi_extractor->interpolate();
+//     }
 
-    return *m_chi_extractor;
-}
+//     return *m_chi_extractor;
+// }
 
 void BinaryBHLevel::variableSetUp()
 {
@@ -234,9 +235,8 @@ void BinaryBHLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
     const auto &tag_arrs       = a_tag_box_array.arrays();
     const auto &state_new_arrs = state_new.const_arrays();
 
-    ChiExtractionTagger chi_extraction_tagger(
-        Geom().CellSize(0), Level(), a_regrid_threshold,
-        simParams().extraction_params, simParams().activate_extraction);
+    ChiTagger chi_tagging_criterion(
+        Geom().CellSize(0), a_regrid_threshold);
 
     const bool puncture_tracking_enabled =
         simParams().puncture_tracking_enabled;
@@ -259,7 +259,7 @@ void BinaryBHLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
     amrex::ParallelFor(state_new, amrex::IntVect(0),
                        [=] AMREX_GPU_DEVICE(int box_no, int i, int j, int k)
                        {
-                           chi_extraction_tagger(i, j, k, tag_arrs[box_no],
+                           chi_tagging_criterion(i, j, k, tag_arrs[box_no],
                                                  state_new_arrs[box_no]);
                            if (puncture_tracking_enabled)
                            {
@@ -300,7 +300,7 @@ void BinaryBHLevel::specific_post_plotfile(const std::string &a_dir,
         get_puncture_tracker().write_plotfile(a_dir);
     }
 
-    get_chi_extractor().write_plotfile(a_dir);
+    // get_chi_extractor().write_plotfile(a_dir);
 }
 
 void BinaryBHLevel::specific_post_checkpoint(const std::string &a_chk_dir,
@@ -314,20 +314,47 @@ void BinaryBHLevel::specific_post_checkpoint(const std::string &a_chk_dir,
 
 void BinaryBHLevel::specificPostTimeStep()
 {
-    if (Level() == 0)
-{
-    BL_PROFILE("ChiExtracted");
+//     if (Level() == 0)
+// {
+//     BL_PROFILE("ChiExtracted");
  
-    amrex::Real cur_time = get_state_data(State_Type).curTime();
-    amrex::Real dt = get_gramr_ptr()->dtLevel(Level());
-    amrex::Real restart_time = get_gramr_ptr()->get_restart_time();
+//     amrex::Real cur_time = get_state_data(State_Type).curTime();
+//     amrex::Real dt = get_gramr_ptr()->dtLevel(Level());
+//     amrex::Real restart_time = get_gramr_ptr()->get_restart_time();
  
-    // SphericalParticles spherical_particles(simParams().spherical_particles_params, c_chi, 1, dt, cur_time, restart_time);
-    // spherical_particles.set_gramr_ptr(get_gramr_ptr());
-    // spherical_particles.initialize_particles_on_sphere();
-    // spherical_particles.interpolate();
-    get_chi_extractor().write_file(std::to_string(cur_time)); // pass current_step = 0 (or appropriate step number)
-}
+//     // SphericalParticles spherical_particles(simParams().spherical_particles_params, c_chi, 1, dt, cur_time, restart_time);
+//     // spherical_particles.set_gramr_ptr(get_gramr_ptr());
+//     // spherical_particles.initialize_particles_on_sphere();
+//     // spherical_particles.interpolate();
+//     get_chi_extractor().write_file(std::to_string(cur_time)); // pass current_step = 0 (or appropriate step number)
+// }
+
+    // Use AMR Interpolator and do lineout data extraction
+    // set up an interpolator
+    // pass the boundary params so that we can use symmetries if
+    // applicable
+
+    bool first_step = (parent->levelSteps(0) == 0);
+
+    if (Level() == 3)
+    {        
+        ParticleInterpolators interpolator(simParams().boundary_params, c_shift1, 3);
+        interpolator.set_gramr_ptr(get_gramr_ptr());
+
+        // set up the query and execute it
+        std::array<double, AMREX_SPACEDIM> extraction_origin = {0.0, simParams().L / 2, -4.0}; 
+
+        double m_time = get_state_data(State_Type).curTime();
+        std::cout << "BinaryBHLevel::specificPostTimeStep() m_time = " << m_time
+              << std::endl;
+        double m_dt = get_gramr_ptr()->dtLevel(Level());
+        double restart_time = get_gramr_ptr()->get_restart_time();
+        
+        // a random chi lineout
+        CustomExtraction chi_extraction(c_shift1, 3, 15, simParams().L/2., extraction_origin, m_dt, m_time, restart_time, first_step);
+        chi_extraction.execute_query(interpolator,
+                                            simParams().data_path + "chi_lineout");
+    }
 
     // do puncture tracking on requested level
     if (simParams().puncture_tracking_enabled &&

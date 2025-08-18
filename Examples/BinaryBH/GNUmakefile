@@ -24,7 +24,6 @@ src_dirs := $(GRTECLYN_SOURCE)/utils \
             $(GRTECLYN_SOURCE)/CCZ4  \
             $(GRTECLYN_SOURCE)/BoxUtils  \
             $(GRTECLYN_SOURCE)/GRTeclynCore  \
-            $(GRTECLYN_SOURCE)/AMRInterpolator  \
             $(GRTECLYN_SOURCE)/Tagging  \
             $(GRTECLYN_SOURCE)/InitialConditions/BlackHoles \
             $(GRTECLYN_SOURCE)/ParticleInterpolators \

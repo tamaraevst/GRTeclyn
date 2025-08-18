@@ -1,5 +1,5 @@
-#ifndef FOURTHORDERLAGRANGEINTERPOLATION_HPP_
-#define FOURTHORDERLAGRANGEINTERPOLATION_HPP_
+#ifndef LAGRANGEINTERPOLATION_HPP_
+#define LAGRANGEINTERPOLATION_HPP_
 
 #include <AMReX_Gpu.H>
 #include <AMReX_IntVect.H>
@@ -8,13 +8,13 @@
 #include "AMReX_LOUtil_K.H"
 #include <cmath>
 
-//Class for 4th order interpolation of the mesh data onto the particle using Lagrange polynomials. 
+//Class for (N-1)th order interpolation of the mesh data onto the particle using Lagrange polynomials. 
 //Currently, it allows to interpolate only one field at a time.
 //Assumes uniform grids 
 //Does not handle the boundaries for now
 
 template <int N>
-class FourthOrderLagrangeInterpolator
+class LagrangeInterpolator
 {
 
 private:    
@@ -48,7 +48,7 @@ private:
 public:
     amrex::Real wx[N], wy[N], wz[N]; //where we store the weights for each dimension
 
-    FourthOrderLagrangeInterpolator() {};
+    LagrangeInterpolator() {};
 
     template <typename P>
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -108,13 +108,13 @@ public:
                 ++ctr;
             } // end of for comp loop
 
-    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+0 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 0)), 21) << std::endl;
-    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+1 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 1)), 21) << std::endl;
-    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+2 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 2)), 21) << std::endl;
-    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+3 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 3)), 21) << std::endl;
-    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+4 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 4)), 21) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+0 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 0)), start_comp) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+1 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 1)), start_comp) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+2 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 2)), start_comp) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+3 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 3)), start_comp) << std::endl;
+    // std::cout << "z at i = " << i0+0 << " j = " << j0+0 << " k = " << k0+4 << " : " << data(amrex::IntVect(AMREX_D_DECL(i0 + 0, j0 + 0, k0 + 4)), start_comp) << std::endl;
     }
 
 };
 
-#endif /* FOURTHORDERLAGRANGEINTERPOLATION_HPP_ */
+#endif /* LAGRANGEINTERPOLATION_HPP_ */

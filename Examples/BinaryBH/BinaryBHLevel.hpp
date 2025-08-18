@@ -10,7 +10,7 @@
 #include "GRAMRLevel.hpp"
 // TPAMR.hpp includes BHAMR.hpp
 #include "TPAMR.hpp"
-#include "SphericalParticles.hpp"
+// #include "SphericalParticles.hpp"
 
 class BinaryBHLevel : public GRAMRLevel
 {
@@ -27,8 +27,8 @@ class BinaryBHLevel : public GRAMRLevel
     /// Get a reference to the PunctureTracker object stored by BHAMR
     PunctureTracker<num_punctures> &get_puncture_tracker();
 
-    std::unique_ptr<SphericalParticles> m_chi_extractor;
-    SphericalParticles &get_chi_extractor();  // declaration
+    // std::unique_ptr<SphericalParticles> m_chi_extractor;
+    // SphericalParticles &get_chi_extractor();  // declaration
 
     /// Things to do at every full timestep
     ///(might include several substeps, e.g. in RK4)

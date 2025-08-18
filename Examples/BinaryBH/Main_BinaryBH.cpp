@@ -49,6 +49,8 @@ int runGRTeclyn(int /*argc*/, char * /*argv*/[])
 
     bh_amr.init(0., sim_params.stop_time);
 
+    std::cout << "Finished initialization of BHAMR" << std::endl;
+
     while (
         (bh_amr.okToContinue() != 0) &&
         (bh_amr.levelSteps(0) < sim_params.max_steps ||
